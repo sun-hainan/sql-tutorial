@@ -345,3 +345,43 @@ SHOW FUNCTION STATUS LIKE 'f_simple_return';
 
 -- 设置全局参数允许创建函数（需管理员权限）
 -- SET GLOBAL log_bin_trust_function_creators = 1;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 存储过程语法    | CREATE PROCEDURE     | CREATE OR REPLACE    | CREATE OR REPLACE    | 不支持              |
+-- | 函数返回值      | RETURNS关键字        | RETURNS关键字        | RETURN关键字         | 不支持              |
+-- | 变量声明        | DECLARE (存储过程)   | 同MySQL              | VARRAY/PL/SQL       | 不支持              |
+-- | 异常处理        | DECLARE HANDLER      | EXCEPTION            | EXCEPTION            | 不支持              |
+-- | 游标            | 支持                | 支持                  | 支持                 | 支持                |
+-- | RETURN语句      | 用于函数返回         | 用于函数返回           | 用于PL/SQL块返回      | 不支持              |
+-- | 确定性函数      | DETERMINISTIC       | IMMUTABLE/STABLE等   | PRAGMA AUTONOMOUS_TRANSACTION | 不支持 |
+-- | 函数内调用SP    | 不支持              | 不支持                 | 不支持               | 不支持              |
+-- | 自治事务        | 不支持              | 支持PRAGMA AUTONOMOUS_TRANSACTION | 支持 | 不支持 |
+
+-- PostgreSQL函数确定性级别：
+-- IMMUTABLE: 不会修改数据库，相同输入永远相同输出（可索引加速）
+-- STABLE: 不修改数据库，但结果依赖数据库状态（不能索引加速）
+-- VOLATILE: 默认，每次调用都可能不同（不能索引加速）
+
+-- Oracle PL/SQL块返回：
+-- BEGIN ... RETURN; END; / 存储过程用DBMS_OUTPUT.PUT_LINE输出
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一个存储过程p_get_employee_count，输入部门ID，输出该部门员工数量。
+
+-- 2. 创建一个函数f_calc_bonus(salary DECIMAL(10,2))，根据工资计算奖金：
+--    salary<5000 → 10%，salary<10000 → 15%，salary>=10000 → 20%，返回奖金金额。
+
+-- 3. 用WHILE循环和游标遍历一张销售表，计算所有销售额的总和，
+--    对比游标方式和直接SELECT SUM()的结果。
+
+-- 4. 创建一个带OUT参数的存储过程，实现从账户A向账户B转账的功能，
+--    包含余额检查和事务回滚逻辑。
+
+-- 5. 用SHOW CREATE PROCEDURE/FUNCTION查看已创建存储过程/函数的完整定义，
+--    验证DETERMINISTIC、READS SQL DATA等特性是否正确设置。

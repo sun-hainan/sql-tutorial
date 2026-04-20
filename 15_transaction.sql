@@ -268,3 +268,55 @@ SHOW VARIABLES LIKE 'innodb_log%';
 -- XA COMMIT 'global_tx_1';
 
 -- 实际使用中，通常由应用服务器（如Java的JTA）或中间件（如ShardingSphere）处理
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 默认隔离级别    | REPEATABLE READ     | READ COMMITTED        | READ COMMITTED       | SERIALIZABLE        |
+-- | MVCC支持        | InnoDB支持          | 支持                  | 支持                 | 不完全支持          |
+-- | SAVEPOINT      | 支持                | 支持                  | 支持                 | 支持                |
+-- | 事务控制语句    | START TRANSACTION   | BEGIN/BEGIN WORK     | COMMIT/ROLLBACK      | BEGIN/COMMIT        |
+-- | 自动提交        | 默认ON              | 默认OFF（需显式COMMIT）| 默认OFF             | 默认ON              |
+-- | 分布式事务      | XA事务              | 两阶段提交(2PC)        | ORA_TMFC/XA          | 不支持              |
+-- | SELECT FOR UPDATE | 支持              | 支持                  | 支持                 | 支持                |
+-- | SELECT LOCK IN SHARE MODE | 支持      | FOR UPDATE/SHARE     | FOR UPDATE           | 不支持              |
+-- | 死锁检测        | InnoDB自动检测      | 自动检测               | 自动检测              | 不支持              |
+
+-- PostgreSQL事务隔离级别：
+-- READ COMMITTED（默认）：只能看到已提交的数据
+-- REPEATABLE READ：MySQL的RR隔离级别
+-- SERIALIZABLE：完全串行化
+-- PostgreSQL没有REPEATABLE READ这个级别（用SNAPSHOT机制替代）
+
+-- Oracle自动提交：
+-- Oracle默认不自动提交（需显式COMMIT或DDL语句自动提交）
+-- MySQL默认自动提交（除BEGIN/START TRANSACTION外每条SQL自动提交）
+-- SQLite默认自动提交（事务以BEGIN开始，以COMMIT/ROLLBACK结束）
+
+-- PostgreSQL/SQLite没有XA：
+-- PostgreSQL用两阶段提交（PREPARE TRANSACTION + COMMIT/ROLLBACK PREPARED）
+-- 需要pg_createlang等扩展支持
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 开启事务：向账户表插入一条记录，然后设置SAVEPOINT，
+--    再插入第二条记录并回滚到SAVEPOINT，最后COMMIT。
+--    验证哪些记录被持久化。
+
+-- 2. 模拟并发场景（需要两个会话窗口）：
+--    会话A开启事务修改某行数据不提交，会话B尝试修改同一行，
+--    观察会话B是被阻塞还是立即报错，说明原因。
+
+-- 3. 查询当前会话和全局的隔离级别（SELECT @@transaction_isolation），
+--    然后分别设置READ COMMITTED和SERIALIZABLE，
+--    用BEGIN开启事务后查询数据，观察两者行为差异。
+
+-- 4. 用ROLLBACK TO SAVEPOINT演示部分回滚：
+--    在一个事务中依次插入3条记录，分别设置sp1和sp2两个保存点，
+--    回滚到sp1后COMMIT，验证哪几条记录被保存。
+
+-- 5. 用START TRANSACTION + COMMIT + ROLLBACK实现一个完整的转账事务：
+--    账户A减100，账户B加100，验证转账前后两账户余额总和不变（一致性验证）。

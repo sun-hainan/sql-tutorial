@@ -314,3 +314,53 @@ SHOW BINLOG EVENTS IN 'binlog.000001' FROM 1;
 -- 主库：SHOW MASTER STATUS;  -- 获取binlog文件名和位置
 -- 从库：CHANGE MASTER TO MASTER_HOST='master_host', MASTER_USER='repl_user', MASTER_PASSWORD='pwd', MASTER_LOG_FILE='binlog.000001', MASTER_LOG_POS=123;
 -- 从库：START SLAVE;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 锁粒度          | 表锁/行锁（InnoDB） | 表锁/行锁            | 表锁/行锁            | 数据库级锁          |
+-- | 排他锁语法      | SELECT FOR UPDATE   | SELECT FOR UPDATE    | SELECT FOR UPDATE   | 不支持              |
+-- | 共享锁语法      | LOCK IN SHARE MODE  | FOR SHARE            | 不直接支持           | 不支持              |
+-- | 间隙锁          | InnoDB支持          | 不支持（MVCC替代）   | 支持                 | 不支持              |
+-- | 乐观锁         | version字段手动实现   | xmin系统列自动实现   | version字段          | 不直接支持          |
+-- | 死锁检测        | InnoDB自动检测       | 自动检测              | 自动检测              | 不支持              |
+-- | 备份工具        | mysqldump/xtrabackup | pg_dump/pg_base_backup | RMAN               | .sqlite文件拷贝      |
+-- | 二进制日志      | binlog              | WAL                   | Redo Log/Archive    | 无                  |
+-- | 主从复制        | binlog+position      | WAL                  | Data Guard           | 不支持              |
+
+-- PostgreSQL MVCC实现（不同于MySQL的锁）：
+-- PostgreSQL用xmin/xmax系统列实现MVCC，读不阻塞写，写也不阻塞读
+-- 写操作会产生新版本，旧版本被垃圾回收（VACUUM）
+
+-- Oracle闪回（MySQL不支持）：
+-- SELECT * FROM t AS OF TIMESTAMP (SYSTIMESTAMP - INTERVAL '10' MINUTE);
+-- ALTER TABLE t ENABLE ROW MOVEMENT;
+-- FLASHBACK TABLE t TO TIMESTAMP (SYSTIMESTAMP - INTERVAL '10' MINUTE);
+
+-- SQLite备份（最简单方式）：
+-- 直接复制.db文件（SQLite数据库是一个文件）
+-- 或使用.backup命令： sqlite3 mydb.sqlite ".backup backup.db"
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一个InnoDB表，开启两个会话：
+--    会话A：START TRANSACTION后执行SELECT ... FOR UPDATE锁定某行
+--    会话B：尝试SELECT FOR UPDATE同一行或INSERT新行，观察锁等待行为
+
+-- 2. 用乐观锁实现库存扣减：
+--    给库存表加version列，更新时用UPDATE ... WHERE id=? AND version=?，
+--    用两个会话模拟并发扣减同一商品，观察version冲突时只有一个成功。
+
+-- 3. 用GRANT语句给用户授予以下权限：
+--    (a) 只读权限（SELECT）：GRANT SELECT ON db.* TO 'reader'@'localhost'
+--    (b) 读写权限（SELECT/INSERT/UPDATE/DELETE）：GRANT ... TO 'writer'@'localhost'
+--    用SHOW GRANTS查看权限，然后REVOKE写权限。
+
+-- 4. 用SHOW ENGINE INNODB STATUS查看死锁信息（如果存在死锁日志段落）。
+--    或手动构造死锁：事务A锁X锁Y，事务B锁Y锁X，观察InnoDB死锁检测。
+
+-- 5. 执行mysqldump备份一个数据库（将命令写在注释中，实际执行验证），
+--    然后用source命令恢复备份（或验证备份文件内容）。

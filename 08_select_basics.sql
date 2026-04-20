@@ -382,3 +382,45 @@ SELECT * FROM t_score s
 WHERE EXISTS (
     SELECT 1 FROM t_score WHERE student_name = s.student_name AND score > 90
 );
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 分页语法        | LIMIT offset,count  | LIMIT/OFFSET         | FETCH FIRST N ROWS   | LIMIT offset,count |
+-- | 去重            | DISTINCT            | DISTINCT             | DISTINCT             | DISTINCT           |
+-- | 别名            | AS或空格             | AS或空格             | AS或空格              | AS或空格            |
+-- | UNION          | UNION/UNION ALL      | UNION/UNION ALL      | UNION/UNION ALL      | UNION/UNION ALL    |
+-- | 别名限制        | MySQL允许在GROUP BY中使用SELECT别名 | 不允许（标准SQL） | 不允许              | 不允许             |
+-- | TOP N          | LIMIT N             | LIMIT N              | FETCH FIRST N ROWS ONLY | LIMIT N           |
+-- | OFFSET          | OFFSET M            | OFFSET M             | OFFSET M ROWS        | OFFSET M           |
+-- | 空字符串排序     | 排在最前(ASC)        | 排在最前(ASC)         | 排在最前(ASC)         | 排在最前(ASC)       |
+-- | NULLS FIRST    | 不支持（用IFNULL）   | 支持                  | 支持                  | 不支持              |
+
+-- Oracle分页（标准SQL）：
+-- SELECT * FROM t ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+
+-- PostgreSQL分页（兼容MySQL语法）：
+-- SELECT * FROM t ORDER BY id LIMIT 10 OFFSET 20;
+
+-- SQLite分页（同MySQL）：
+-- SELECT * FROM t ORDER BY id LIMIT 10 OFFSET 20;
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 写一个查询，找出每个科目最高分的学生姓名和分数，
+--    使用子查询（不用窗口函数），然后用窗口函数重写，对比代码量。
+
+-- 2. 写一个分页查询：第3页，每页5条，按分数降序排列学生成绩表。
+--    分别用LIMIT OFFSET语法和LIMIT offset,count语法实现。
+
+-- 3. 用DISTINCT统计t_score表中一共有多少个不同的科目（subject），
+--    再用COUNT(DISTINCT subject)实现，对比两者结果。
+
+-- 4. 构造一个UNION和UNION ALL的对比查询：有一张学生表和一张教师表，
+--    用UNION和UNION ALL分别合并两表的姓名列，观察去重差异。
+
+-- 5. 验证SQL执行顺序：写一个包含WHERE、GROUP BY、HAVING、SELECT别名、ORDER BY的复杂查询，
+--    证明ORDER BY可以使用SELECT别名（因为ORDER BY最后执行）。

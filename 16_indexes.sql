@@ -311,3 +311,54 @@ EXPLAIN SELECT * FROM t_user WHERE age > 30;
 -- 1. 为高频查询条件创建索引
 -- 2. 删除不使用的索引（DROP INDEX）
 -- 3. 使用复合索引代替单列索引（如果多个列经常一起查询）
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 索引默认类型     | B+树（InnoDB）      | B+树                 | B+树                | B+树                |
+-- | 主键索引        | 聚簇索引            | 聚簇索引              | 聚簇索引             | WITHOUT ROWID(5+)   |
+-- | 全文索引        | InnoDB 5.6+支持     | GIN(标准)             | CONTEXT索引          | FTS5                |
+-- | 表达式索引      | 不支持（8.0部分）    | 支持                  | 支持                 | 不支持              |
+-- | 部分索引        | 不支持              | 支持                  | 支持                 | 不支持              |
+-- | 哈希索引        | MEMORY引擎支持       | HASH索引             | 不直接支持           | 不支持              |
+-- | 索引方法选择    | 自动选择B+树         | 可指定HASH/BTREE等   | 自动选择             | 自动选择             |
+-- | UNIQUE索引      | 支持                | 支持                  | 支持                 | 支持                |
+-- | 多列索引顺序    | 遵循最左前缀         | 遵循最左前缀           | 遵循最左前缀          | 遵循最左前缀         |
+-- | 覆盖索引        | 支持                | 支持                  | 支持                 | 支持                |
+
+-- PostgreSQL部分索引（MySQL不支持）：
+-- CREATE INDEX idx_active_users ON users(email) WHERE is_active = true;
+-- 只对活跃用户建立索引，减小索引体积
+
+-- PostgreSQL表达式索引（MySQL不支持或受限）：
+-- CREATE INDEX idx_lower_email ON users(LOWER(email));
+-- 直接在索引列上使用表达式
+
+-- Oracle全文索引：
+-- CREATE INDEX idx_fts ON articles(content) INDEXTYPE IS CTXSYS.CONTEXT;
+
+-- SQLite FTS5全文搜索（MySQL不支持原生FTS5）：
+-- CREATE VIRTUAL TABLE articles_fts USING fts5(title, content);
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一张表并插入1000条数据（可用数字序列生成），然后：
+--    (a) 不建索引，执行EXPLAIN分析查询，查看type和rows；
+--    (b) 在某列上建索引，再次EXPLAIN分析，观察type是否改善。
+
+-- 2. 创建一个复合索引idx_a_b(a, b, c)，验证以下查询是否使用索引：
+--    WHERE a=1（使用）、WHERE a=1 AND b=2（使用）、
+--    WHERE b=2（不使用）、WHERE a=1 AND c=3（部分使用a列）。
+
+-- 3. 用EXPLAIN分析：SELECT name FROM t_user WHERE email = 'xxx'，
+--    如果email列有索引但name列没有，分析是否需要回表，
+--    再创建一个覆盖索引idx_email_name(email, name)，观察Using index出现。
+
+-- 4. 构造一个LIKE查询分别用'xxx%'、'%xxx%'、'%xxx'开头，
+--    用EXPLAIN分析哪种走索引、哪种全表扫描，解释原因。
+
+-- 5. 用SHOW INDEX FROM table_name查看某表的索引详情，
+--    分析哪些是主键索引、哪些是唯一索引、哪些是普通索引。

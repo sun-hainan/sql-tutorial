@@ -259,3 +259,49 @@ DROP VIEW IF EXISTS v_dept_summary;
 
 SHOW TABLES;  -- 视图不显示在表列表中
 SHOW FULL TABLES WHERE Table_type = 'VIEW';  -- 显示视图
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 物化视图        | 不支持              | 支持（可物化）        | 支持                 | 不支持              |
+-- | 可更新视图      | 有限支持            | 支持                  | 支持                 | 支持                |
+-- | CHECK OPTION   | 支持                | 支持                  | 支持                 | 支持                |
+-- | 视图算法        | MERGE/UNDEFINED/TEMPTABLE | 无（总是合并）  | 无                    | 无                  |
+-- | WITH CHECK OPTION | 支持（MySQL特有命名） | 同MySQL           | 同MySQL              | 同MySQL              |
+-- | 视图上的索引    | 无法创建            | 可在物化视图建索引      | 可在视图建索引        | 无法创建              |
+-- | 递归视图        | 不支持              | 支持RECURSIVE          | 支持CONNECT BY        | 不支持              |
+
+-- PostgreSQL物化视图：
+-- CREATE MATERIALIZED VIEW mv_sales AS SELECT ...;
+-- REFRESH MATERIALIZED VIEW mv_sales; -- 刷新数据
+
+-- Oracle递归查询（MySQL不支持，需用递归CTE 8.0+）：
+-- SELECT * FROM employees START WITH id = 1 CONNECT BY PRIOR id = manager_id;
+
+-- MySQL 8.0+递归CTE替代Oracle CONNECT BY：
+-- WITH RECURSIVE emp_tree AS (
+--     SELECT id, name, manager_id FROM employees WHERE id = 1
+--     UNION ALL
+--     SELECT e.id, e.name, e.manager_id FROM employees e
+--     INNER JOIN emp_tree ON e.manager_id = emp_tree.id
+-- )
+-- SELECT * FROM emp_tree;
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一个视图v_emp_salaries，显示员工姓名和薪资，
+--    通过该视图更新某员工的薪资，验证更新是否反映到基表。
+
+-- 2. 创建两个视图：简单视图（不含聚合）和复杂视图（含GROUP BY），
+--    尝试对复杂视图执行INSERT/UPDATE，验证哪些操作会失败并说明原因。
+
+-- 3. 创建带WITH CHECK OPTION的视图：只显示IT部门的员工，
+--    尝试插入一个非IT部门的员工，验证WITH CHECK OPTION如何阻止操作。
+
+-- 4. 用视图封装一个多表JOIN查询（部门+员工+职位），
+--    后续只需SELECT * FROM v_complex_emp即可查询，不需要每次写复杂JOIN。
+
+-- 5. 查询INFORMATION_SCHEMA.VIEWS，列出当前数据库中所有视图的名称和定义。

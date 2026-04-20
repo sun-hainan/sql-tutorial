@@ -370,3 +370,48 @@ INSERT INTO t_sales_str VALUES (1, '1000.50'), (2, '2000.75');
 
 SELECT id, amount, CAST(amount AS DECIMAL(10,2)) AS amount_num FROM t_sales_str;
 SELECT SUM(CAST(amount AS DECIMAL(10,2))) AS total FROM t_sales_str;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 字符串拼接      | CONCAT() 或 || (需设置) | CONCAT() 或 ||      | CONCAT() 或 ||      | || (MySQL风格CONCAT)|
+-- | 子串截取        | SUBSTRING()         | SUBSTRING()          | SUBSTR()            | SUBSTR()            |
+-- | 大小写转换      | UPPER/LOWER         | UPPER/LOWER          | UPPER/LOWER         | UPPER/LOWER         |
+-- | TRIM           | TRIM/LTRIM/RTRIM    | TRIM/BOTH/LEADING/TRAILING | TRIM            | TRIM               |
+-- | NULL替换        | IFNULL()           | COALESCE()           | NVL()               | IFNULL()            |
+-- | 多路CASE        | CASE WHEN ... END   | CASE WHEN ... END   | CASE WHEN ... END   | CASE WHEN ... END   |
+-- | 条件表达式      | IF(cond,t,f)        | 不支持(用CASE)        | DECODE()            | 不支持(用CASE)       |
+-- | 日期格式化      | DATE_FORMAT()       | TO_CHAR()            | TO_CHAR()           | STRFTIME()          |
+-- | 类型转换        | CAST()/CONVERT()    | CAST()               | TO_CHAR/TO_NUMBER   | CAST()              |
+
+-- PostgreSQL无IF()函数，需用CASE WHEN替代：
+-- SELECT CASE WHEN price > 1000 THEN 'High' ELSE 'Low' END FROM products;
+
+-- Oracle的DECODE（类似IF）：
+-- SELECT DECODE(sign(price-1000), 1, 'High', 0, 'Exact', -1, 'Low') FROM products;
+
+-- Oracle日期格式化：
+-- SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') FROM DUAL;
+
+-- SQLite日期格式化（strftime）：
+-- SELECT STRFTIME('%Y-%m-%d %H:%M:%S', 'now');
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 用CONCAT拼接字符串：'Hello', ' ', 'World'，结果为'Hello World'。
+--    再用CONCAT_WS(' - ', 'A', 'B', 'C')实现带分隔符的拼接。
+
+-- 2. 用DATE_FORMAT将当前日期格式化为'2024年01月15日 14:30:45'格式，
+--    再用DATE_ADD和DATE_SUB计算30天前和30天后的日期。
+
+-- 3. 用CASE WHEN将学生成绩(score)转换为等级：
+--    score>=90 → 'A', score>=80 → 'B', score>=60 → 'C', score<60 → 'D'。
+
+-- 4. 用COALESCE实现：从phone、email、wechat三列中返回第一个非NULL值，
+--    测试在多列都为NULL时的返回结果。
+
+-- 5. 用CAST将字符串'123.45'转换为DECIMAL(10,2)，再将数字123转换为字符串，
+--    验证类型转换前后的值和类型（用SELECT 配合 typeof() 或 DATA_TYPE）。

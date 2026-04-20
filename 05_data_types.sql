@@ -423,3 +423,50 @@ SELECT * FROM t_default_demo;
 -- 注意：DEFAULT CURRENT_TIMESTAMP 只能在DATETIME/TIMESTAMP上使用
 -- 下面的CREATE会失败
 -- CREATE TABLE t_bad (id INT DEFAULT (MAX(id)+1));  -- 不能用聚合函数做默认值
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 数据类型            | MySQL                | PostgreSQL            | Oracle               | SQLite              |
+-- |------------------|---------------------|----------------------|---------------------|--------------------|
+-- | 变长字符串         | VARCHAR(max=65535)   | VARCHAR(max=10485760) | VARCHAR2(max=32767)  | TEXT               |
+-- | 定长字符串         | CHAR(max=255)        | CHAR(max=10485760)    | CHAR(max=32767)     | CHAR               |
+-- | 大文本             | TEXT/LONGTEXT(4GB)   | TEXT/JSON            | CLOB(128TB)          | TEXT               |
+-- | 大二进制           | BLOB/LONGBLOB(4GB)   | BYTEA                | BLOB(128TB)          | BLOB               |
+-- | 精确小数           | DECIMAL(M,D)        | NUMERIC/DECIMAL      | NUMBER               | NUMERIC            |
+-- | 布尔类型           | TINYINT(1)或BOOL    | BOOLEAN              | NUMBER(1)或CHAR(1)   | INTEGER(0/1)       |
+-- | 时间戳             | TIMESTAMP(4字节)     | TIMESTAMP            | TIMESTAMP            | TEXT(ISO8601)      |
+-- | JSON支持           | JSON/JSONB(5.7+/9.2+)| JSONB(原生二进制)     | JSON(12c+)          | JSON(原生)         |
+-- | UUID              | CHAR(36)/BINARY(16)  | UUID(原生支持)        | RAW(16)或SYS_GUID()  | TEXT               |
+-- | 数组类型           | 不支持               | 原生支持              | 不支持               | 不支持             |
+
+-- DECIMAL精度差异：
+-- MySQL: DECIMAL(65,30) 最大精度
+-- PostgreSQL: NUMERIC(1000, 50) 可更高精度
+-- Oracle: NUMBER(*, 38) 默认38位精度
+-- SQLite: 无原生DECIMAL，用REAL代替
+
+-- TIMESTAMP差异：
+-- MySQL TIMESTAMP: 1970-2038，自动时区转换，4字节
+-- PostgreSQL TIMESTAMP: 无时区(TIMESTAMP)或有时区(TIMESTAMPTZ)，8字节
+-- Oracle TIMESTAMP: 精确到纳秒，支持时区
+-- SQLite: 无TIMESTAMP类型，用TEXT存储ISO8601格式
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一个包含DECIMAL(10,2)、FLOAT、DOUBLE类型的表，分别插入值0.1，
+--    连续做10次加0.1运算，观察每种类型的精度差异。
+
+-- 2. 用DATETIME和TIMESTAMP各创建一张表，插入相同的时间值，
+--    执行 SELECT * FROM t1 UNION ALL SELECT * FROM t2，
+--    观察两种类型的存储差异。
+
+-- 3. 创建一个表使用ENUM类型存储订单状态（pending/paid/shipped/delivered/cancelled），
+--    插入各种状态后，用ORDER BY排序，观察排序是否按定义顺序而非字母顺序。
+
+-- 4. 将VARCHAR(20)字段和CHAR(20)字段分别插入'abc'和'  abc  '（带空格），
+--    用LENGTH()和CHAR_LENGTH()分别测量，解释两者的差异原因。
+
+-- 5. 设计一个记录用户登录日志的表，包含：用户ID、登录时间（精确到毫秒）、
+--    登录IP、登录设备类型。合理选择数据类型并说明理由。

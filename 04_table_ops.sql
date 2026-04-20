@@ -330,3 +330,46 @@ SHOW TABLE STATUS LIKE 't_%';
 
 -- COUNT(*)性能对比（MyISAM更快，因为存储了精确行数）
 -- InnoDB需要实时扫描统计，MyISAM从元数据读取
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性              | MySQL               | PostgreSQL           | Oracle              | SQLite            |
+-- |-----------------|---------------------|---------------------|--------------------|------------------|
+-- | 创建表语法        | CREATE TABLE        | CREATE TABLE         | CREATE TABLE        | CREATE TABLE      |
+-- | 表复制            | CREATE TABLE LIKE    | CREATE TABLE AS      | CREATE TABLE AS     | CREATE TABLE AS   |
+-- | 临时表            | CREATE TEMPORARY     | CREATE TEMP TABLE    | GLOBAL TEMP TABLE   | TEMP TABLE        |
+-- | 修改表结构        | ALTER TABLE          | ALTER TABLE          | ALTER TABLE         | ALTER TABLE       |
+-- | 删除表            | DROP TABLE           | DROP TABLE           | DROP TABLE          | DROP TABLE        |
+-- | 清空表            | TRUNCATE TABLE       | TRUNCATE TABLE       | TRUNCATE TABLE      | DELETE FROM       |
+-- | 自增ID语法        | AUTO_INCREMENT        | SERIAL/BIGSERIAL     | SEQUENCE            | AUTOINCREMENT     |
+-- | 截断外键表        | 先删外键再TRUNCATE   | CASCADE TRUNCATE     | CASCADE PURGE       | 不支持TRUNCATE    |
+
+-- PostgreSQL的表复制语法差异：
+-- CREATE TABLE t_new AS SELECT * FROM t_old [WITH NO DATA];  -- 可选是否复制数据
+-- PostgreSQL没有TRUNCATE的CASCADE选项，需要: TRUNCATE t1, t2, ... CASCADE;
+
+-- Oracle的临时表：
+-- CREATE GLOBAL TEMPORARY TABLE t_temp (id INT, name VARCHAR2(50))
+-- ON COMMIT DELETE ROWS;  -- 事务级
+-- ON COMMIT PRESERVE ROWS; -- 会话级
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 用CREATE TABLE ... LIKE复制一个表的结构（不复制数据），
+--    再用CREATE TABLE ... AS SELECT复制完整数据，分别对比两种方式复制的结果有何不同。
+
+-- 2. 创建一个临时表，插入数据后执行SHOW TABLES，
+--    验证临时表在断开连接后是否自动消失（可通过新会话连接后查询验证）。
+
+-- 3. 用ALTER TABLE分别实现以下操作（基于同一张表）：
+--    添加一个新列、修改某列的数据类型、删除刚添加的列、重命名表。
+
+-- 4. 比较TRUNCATE和DELETE在以下场景的表现：
+--    （a）对100万行数据的清空速度（可用EXPLAIN分析或观察执行时间）
+--    （b）AUTO_INCREMENT的差异
+--    （c）ROLLBACK的效果差异
+
+-- 5. 设计一个表，要求：id为主键自增，name非空且唯一，email非空，
+--    age在0-150之间，created_at默认为当前时间。用SHOW CREATE TABLE验证所有约束。

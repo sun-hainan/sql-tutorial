@@ -320,3 +320,42 @@ SELECT
     RANK() OVER (PARTITION BY region ORDER BY amount DESC) AS regional_rank
 FROM t_sales
 ORDER BY region, regional_rank;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 窗口函数        | 8.0+支持             | 9.1+支持             | 11gR2+支持           | 3.25+支持           |
+-- | GROUP_CONCAT   | 支持（MySQL特有）     | STRING_AGG()         | LISTAGG()           | GROUP_CONCAT()      |
+-- | ROLLUP         | WITH ROLLUP         | ROLLUP()             | GROUP BY ROLLUP()   | 不支持              |
+-- | CUBE           | 不支持               | CUBE()               | GROUP BY CUBE()     | 不支持              |
+-- | HAVING中使用别名 | 支持（MySQL扩展）    | 不支持（标准SQL）     | 不支持              | 支持（SQLite扩展）   |
+-- | COUNT(*)优化   | MyISAM优化过         | 全表扫描             | 全表扫描              | 全表扫描            |
+
+-- PostgreSQL的STRING_AGG（等价于MySQL的GROUP_CONCAT）：
+-- SELECT department, STRING_AGG(name, ',' ORDER BY name) FROM employees GROUP BY department;
+
+-- Oracle的LISTAGG：
+-- SELECT department, LISTAGG(name, ',') WITHIN GROUP (ORDER BY name) FROM employees GROUP BY department;
+
+-- 窗口函数标准vs MySQL扩展：
+-- 标准SQL: SELECT RANK() OVER (PARTITION BY dept ORDER BY salary DESC) FROM emp;
+-- MySQL: SELECT RANK() OVER (PARTITION BY dept ORDER BY salary DESC) FROM emp; （标准支持）
+-- PostgreSQL/SQLite: 同样语法支持
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 用GROUP BY统计每个部门的员工数量、平均工资、最高工资，
+--    用HAVING筛选平均工资大于8000的部门。
+
+-- 2. 用ROW_NUMBER()、RANK()、DENSE_RANK()分别对同一个分数表按分数降序排名，
+--    观察三者对并列数据的处理差异（处理并列后排名跳跃问题）。
+
+-- 3. 用窗口函数实现累计求和：orders表（id, amount），计算每笔订单的累计金额。
+
+-- 4. 用LAG()函数计算每笔订单相对于上一笔订单的金额增长额（amount - prev_amount）。
+
+-- 5. 用GROUP_CONCAT把每个部门的员工姓名用逗号连接成一个字符串，
+--    实现类似Oracle LISTAGG的效果。

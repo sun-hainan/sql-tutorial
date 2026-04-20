@@ -328,3 +328,51 @@ WITH high_value_products AS (
     SELECT * FROM t_products WHERE price > 100
 )
 SELECT category, COUNT(*) FROM high_value_products GROUP BY category;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 执行计划查看    | EXPLAIN             | EXPLAIN/EXPLAIN ANALYZE | EXPLAIN PLAN FOR   | EXPLAIN QUERY PLAN |
+-- | EXPLAIN ANALYZE| 8.0.18+支持         | 支持                  | 不直接支持            | 不支持              |
+-- | 慢查询日志      | slow_query_log      | log_min_duration_statement | 无（用AWR/ASH）  | 不支持              |
+-- | 索引提示        | USE INDEX/FORCE INDEX | 不支持              | HINTS               | 不支持              |
+-- | CTE(公用表表达式)| 8.0+支持           | 支持                  | 12c+支持             | 3.8+支持           |
+-- | 窗口函数        | 8.0+支持            | 9.1+支持             | 支持                 | 3.25+支持           |
+-- | 递归CTE        | 8.0+支持            | 支持                  | 11gR2+支持           | 3.8+支持           |
+-- | 直方图          | 8.0+支持            | 支持                  | DBMS_STATS          | ANALYZE TABLE      |
+
+-- PostgreSQL EXPLAIN ANALYZE（实际执行并显示真实时间）：
+-- EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT * FROM t;
+
+-- Oracle执行计划：
+-- EXPLAIN PLAN FOR SELECT * FROM t WHERE id = 1;
+-- SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+-- SQLite执行计划：
+-- EXPLAIN QUERY PLAN SELECT * FROM t WHERE id = 1;
+
+-- PostgreSQL的日志配置：
+-- ALTER SYSTEM SET log_min_duration_statement = 1000; -- 记录超过1秒的查询
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 用EXPLAIN分析以下查询计划的各个字段：
+--    SELECT category, AVG(price) FROM t_products GROUP BY category。
+--    解释type、possible_keys、key、rows、Extra各字段的含义。
+
+-- 2. 创建一个10000行的表，实现深度分页：
+--    (a) 直接用 LIMIT 9000, 10，观察扫描行数
+--    (b) 改写为延迟关联：先LIMIT查ID，再JOIN查完整数据，观察行数变化
+
+-- 3. 对比SELECT * vs SELECT具体列名 的EXPLAIN输出差异，
+--    如果被查询的列有覆盖索引，验证Using index出现的位置。
+
+-- 4. 模拟慢查询：用SELECT SLEEP(n) 或 让查询扫描大量数据，
+--    开启慢查询日志（SET GLOBAL slow_query_log=1; SET GLOBAL long_query_time=1;），
+--    执行慢SQL后，查看日志文件中的记录。
+
+-- 5. 用EXPLAIN分析WHERE price > 100 和 WHERE YEAR(create_time) = 2024 两条查询，
+--    找出索引失效的查询，并说明失效原因和改进方案。

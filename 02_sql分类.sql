@@ -379,3 +379,45 @@ SELECT COUNT(*) FROM t_large;  -- 数据回滚，仍有1000条
 -- TRUNCATE：立即清空，无法回滚
 TRUNCATE TABLE t_large;
 SELECT COUNT(*) FROM t_large;  -- 直接清空，0条
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 语言分类       | MySQL关键字                  | PostgreSQL/Oracle对应        |
+-- |-------------|---------------------------|---------------------------|
+-- | DDL（数据定义） | CREATE/ALTER/DROP/RENAME/TRUNCATE | 同MySQL              |
+-- | DML（数据操作） | INSERT/UPDATE/DELETE/REPLACE   | INSERT/UPDATE/DELETE/MERGE |
+-- | DQL（数据查询） | SELECT                         | 同MySQL                    |
+-- | DCL（数据控制） | GRANT/REVOKE                   | 同MySQL                    |
+-- | TCL（事务控制） | START TRANSACTION/COMMIT/ROLLBACK/SAVEPOINT | 同MySQL         |
+
+-- TRUNCATE行为差异：
+-- MySQL: TRUNCATE是DDL（自动提交，不可ROLLBACK）
+-- PostgreSQL: TRUNCATE是DDL，但可用CASCADE级联截断多个表
+-- Oracle: TRUNCATE是DDL（HIGH-water mark重置），比DELETE快得多
+-- SQLite: 不支持TRUNCATE，用DELETE FROM替代
+
+-- REPLACE行为差异：
+-- MySQL: REPLACE INTO = 有则DELETE+INSERT，无则INSERT
+-- PostgreSQL: 不支持REPLACE，用INSERT...ON CONFLICT替代
+-- Oracle: 不支持REPLACE，用MERGE替代
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 分别写出属于DDL、DML、DQL、DCL、TCL的SQL语句各2条，说明分类依据。
+
+-- 2. 在事务中执行以下操作：INSERT一条记录 → 设置SAVEPOINT →
+--    再INSERT一条记录 → ROLLBACK TO SAVEPOINT → COMMIT。
+--    验证哪些记录被持久化。
+
+-- 3. 对比DELETE vs TRUNCATE：
+--    (a) DELETE可加WHERE条件，TRUNCATE不能
+--    (b) DELETE是DML（可ROLLBACK），TRUNCATE是DDL（不可ROLLBACK）
+--    (c) DELETE保留AUTO_INCREMENT，TRUNCATE重置AUTO_INCREMENT
+
+-- 4. 查找PostgreSQL/Oracle中MySQL REPLACE INTO语句的等效写法，
+--    用MERGE INTO（Oracle）或INSERT...ON CONFLICT（PostgreSQL）实现。
+
+-- 5. 验证SAVEPOINT的回滚行为：在一个事务中设置多个SAVEPOINT，
+--    多次ROLLBACK TO SAVEPOINT到不同点，观察数据状态变化。

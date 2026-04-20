@@ -1,4 +1,61 @@
 -- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+
+-- Q8: 常见关系型数据库（MySQL / PostgreSQL / Oracle / SQLite）核心差异是什么？
+
+-- 【解答】
+-- MySQL：开源免费，轻量级，Web应用首选；PostgreSQL：功能最丰富，学术/企业级；
+-- Oracle：商业数据库，功能最全但昂贵；SQLite：嵌入式零配置，轻量高效
+
+-- 【对比速查表】
+-- | 特性         | MySQL          | PostgreSQL       | Oracle           | SQLite          |
+-- |-------------|---------------|-----------------|-----------------|----------------|
+-- | License     | GPL/商业       | PostgreSQL BSD   | 商业             | 共有领域(Public Domain)|
+-- | 主打场景     | Web应用        | 企业级/学术       | 金融/大型企业     | 嵌入式/移动/测试 |
+-- | ACID       | InnoDB完整支持  | 完整支持         | 完整支持          | 完整支持         |
+-- | 并发        | 行级锁        | MVCC+行级锁      | 行级锁+多版本     | 读并发好写串行   |
+-- | JSON支持    | 5.7+ JSON函数  | 9.2+ JSONB+JSON  | 12c+ JSON       | 原生支持         |
+-- | 数组类型    | 不支持        | 支持             | 不支持           | 不支持           |
+-- | 范围类型    | 不支持        | 支持             | 不支持           | 不支持           |
+-- | 递归CTE     | 8.0+支持       | 9.1+支持         | 11gR2+支持       | 3.8.9+支持       |
+-- | 窗口函数    | 8.0+支持       | 9.1+支持         | 支持             | 3.25+支持        |
+-- | 分页语法    | LIMIT          | LIMIT/OFFSET     | FETCH FIRST      | LIMIT           |
+-- | 自增ID语法  | AUTO_INCREMENT  | SERIAL/BIGSERIAL | SEQUENCE         | AUTOINCREMENT   |
+-- | 批量插入    | INSERT...VALUES(...),(...) | 同MySQL | 同MySQL | 同MySQL |
+
+-- 【语法差异示例】
+-- 自增ID语法差异：
+-- MySQL:    CREATE TABLE t(id INT PRIMARY KEY AUTO_INCREMENT);
+-- PostgreSQL: CREATE TABLE t(id SERIAL PRIMARY KEY); 或 BIGSERIAL
+-- Oracle:   需要CREATE SEQUENCE + 触发器，或12c的IDENTITY
+-- SQLite:   CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);
+
+-- 分页语法差异：
+-- MySQL:    SELECT * FROM t ORDER BY id LIMIT 10 OFFSET 20;
+-- PostgreSQL: SELECT * FROM t ORDER BY id LIMIT 10 OFFSET 20;
+-- Oracle:   SELECT * FROM t ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+-- SQLite:   SELECT * FROM t ORDER BY id LIMIT 10 OFFSET 20;
+
+-- Upsert语法差异：
+-- MySQL:    INSERT ... ON DUPLICATE KEY UPDATE col=val;
+-- PostgreSQL: INSERT ... ON CONFLICT(col) DO UPDATE SET col=val;
+-- Oracle:   MERGE INTO t USING s ON (t.id=s.id) WHEN MATCHED THEN UPDATE SET ...;
+-- SQLite:   INSERT OR REPLACE INTO t VALUES(...);
+
+-- 判断NULL语法（NVL vs IFNULL vs COALESCE）：
+-- MySQL:    SELECT IFNULL(col, 'default') FROM t;
+-- PostgreSQL: SELECT COALESCE(col, 'default') FROM t;
+-- Oracle:   SELECT NVL(col, 'default') FROM t;
+-- SQLite:   SELECT IFNULL(col, 'default') FROM t;
+
+-- 字符串拼接差异：
+-- MySQL:    SELECT CONCAT('Hello', ' ', 'World'); 或 SELECT 'Hello' || ' ' || 'World' (SQL_MODE开启PIPES_AS_CONCAT)
+-- PostgreSQL: SELECT 'Hello' || ' ' || 'World';
+-- Oracle:   SELECT 'Hello' || ' ' || 'World' 或 CONCAT('Hello', 'World')
+-- SQLite:   SELECT 'Hello' || ' ' || 'World';
+
+-- ================================================================
 -- 模块一：数据库基础认知
 -- ================================================================
 
@@ -301,3 +358,21 @@ SHOW ENGINES;  -- 查看MySQL支持的存储引擎
 -- 3. 支持外键
 -- 4. 支持MVCC
 -- 5. 崩溃恢复
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建两个表：t_department（dept_id INT主键, dept_name VARCHAR(50)）和
+--    t_employee（emp_id INT主键, emp_name VARCHAR(50), dept_id INT外键），
+--    并插入测试数据，然后通过JOIN查询显示每个员工所属的部门名称。
+
+-- 2. 设计一个满足3NF的学生选课数据库：包含学生表、课程表、选课表（成绩），
+--    说明每张表的字段和主键/外键关系。
+
+-- 3. 写一条SQL查询，证明"SELECT的别名不能在WHERE中使用"：
+--    分别展示（a）用别名排序成功；（b）用别名在WHERE中过滤报错的现象。
+
+-- 4. 创建一个反范式设计的例子：在订单表t_order中冗余存储customer_name，
+--    避免每次查询订单时都要JOIN客户表。对比范式化和反范式的查询写法。
+
+-- 5. 查询INFORMATION_SCHEMA，列出当前MySQL服务器中所有数据库的名称和默认字符集。

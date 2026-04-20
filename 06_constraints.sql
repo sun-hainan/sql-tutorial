@@ -356,3 +356,47 @@ SELECT
     NON_UNIQUE
 FROM INFORMATION_SCHEMA.STATISTICS
 WHERE TABLE_SCHEMA = 'constraints_demo' AND TABLE_NAME = 't_constraint_demo';
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 约束类型           | MySQL                | PostgreSQL            | Oracle               | SQLite              |
+-- |-----------------|---------------------|----------------------|---------------------|--------------------|
+-- | 主键              | PRIMARY KEY          | PRIMARY KEY           | PRIMARY KEY         | PRIMARY KEY        |
+-- | 唯一约束           | UNIQUE               | UNIQUE                | UNIQUE              | UNIQUE             |
+-- | 非空约束           | NOT NULL             | NOT NULL              | NOT NULL            | NOT NULL           |
+-- | 检查约束           | CHECK(8.0.16+支持)   | CHECK(始终强制)        | CHECK               | CHECK              |
+-- | 外键约束           | FOREIGN KEY          | FOREIGN KEY           | REFERENCES          | FOREIGN KEY        |
+-- | 默认值             | DEFAULT val          | DEFAULT val           | DEFAULT val         | DEFAULT val        |
+-- | 自增列             | AUTO_INCREMENT       | SERIAL/BIGSERIAL      | SEQUENCE/IDENTITY   | AUTOINCREMENT      |
+-- | 约束命名           | CONSTRAINT name      | CONSTRAINT name        | CONSTRAINT name     | 不支持命名约束      |
+-- | 多列唯一           | UNIQUE(col1,col2)    | UNIQUE(col1,col2)     | UNIQUE(col1,col2)  | UNIQUE(col1,col2)  |
+
+-- CHECK约束行为差异：
+-- MySQL 8.0.16之前：CHECK被忽略（不报错但不强制），5.7及更早版本需注意
+-- PostgreSQL：始终强制CHECK约束，违反会报错
+-- Oracle：始终强制CHECK约束
+-- SQLite：始终强制CHECK约束（但在CHECK中使用ALTER TABLE ADD CONSTRAINT时行为有差异）
+
+-- 外键约束行为差异：
+-- MySQL: ON DELETE/UPDATE CASCADE/SET NULL/RESTRICT/NO ACTION均支持
+-- PostgreSQL: 额外支持DEFERRABLE INITIALLY DEFERRED（延迟检查）
+-- Oracle: 支持ON DELETE CASCADE/SET NULL/NO ACTION
+-- SQLite: 支持ON DELETE/UPDATE CASCADE/SET NULL/RESTRICT
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一个联合主键表：t_enrollment(student_id, course_id, enroll_date, grade)，
+--    验证同一学生不能重复选修同一课程，且student_id和course_id都不能为空。
+
+-- 2. 创建一个带CHECK约束的表：产品表，price > 0, quantity >= 0, rating 1-5。
+--    尝试插入违反CHECK的数据，观察MySQL 8.0.16+的报错行为。
+
+-- 3. 设计父子表（部门-员工），外键设置ON DELETE CASCADE，
+--    验证删除父记录时子记录是否自动级联删除。
+
+-- 4. 用NOT NULL vs 空字符串'' vs 0 作为"无数据"标记，
+--    创建一个表分别用这三种方式存储"未知年龄"，插入数据并查询验证差异。
+
+-- 5. 查询INFORMATION_SCHEMA.TABLE_CONSTRAINTS，列出当前数据库中所有约束的名称、类型和所属表。

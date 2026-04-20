@@ -314,3 +314,43 @@ SELECT * FROM t_del_test;  -- 1条（AUTO_INCREMENT重置为1）
 -- DROP TABLE：删除表结构
 DROP TABLE t_del_test;
 -- 表不存在了，所有数据永久丢失
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite           |
+-- |---------------|---------------------|---------------------|--------------------|-----------------|
+-- | 创建数据库      | CREATE DATABASE     | CREATE DATABASE      | CREATE DATABASE     | 直接创建文件     |
+-- | 删除数据库      | DROP DATABASE       | DROP DATABASE       | DROP DATABASE      | 删除文件         |
+-- | 切换数据库      | USE db_name         | SET search_path     | ALTER SESSION      | 无（单文件）     |
+-- | 跨库查询        | 需完全限定名         | 需schema前缀         | 需dblink           | 不支持          |
+-- | 排序规则设置    | COLLATE子句          | COLLATE子句          | NLS_SORT           | 编译时决定       |
+-- | 存储引擎指定    | ENGINE=InnoDB/MyISAM | 无（统一存储）        | TABLESPACE         | 无              |
+-- | 系统字符集      | character_set_server | server_encoding     | NLS_CHARACTERSET   | 固定            |
+-- | 配置语法        | my.cnf/my.ini        | postgresql.conf      | spfile/pfile        | 无配置文件       |
+
+-- PostgreSQL没有USE语句，切换schema的方式：
+-- SET search_path TO myschema;
+-- 或: SET search_path TO myschema, public;
+
+-- SQLite的数据库创建：
+-- SQLite没有CREATE DATABASE语句，直接通过文件名创建/打开数据库
+-- sqlite3 mydb.sqlite
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一个名为test_charset的数据库，指定utf8mb4字符集和utf8mb4_unicode_ci排序规则，
+--    然后创建表插入中英文混合数据，验证不区分大小写查询是否正常。
+
+-- 2. 用mysqldump（或在注释中写出命令）导出shop_db数据库到shop_backup.sql，
+--    再用mysql命令恢复。实际执行并验证数据完整性。
+
+-- 3. 分别用DELETE、TRUNCATE、DROP删除同一个表的数据，
+--    用ROLLBACK验证哪些可以回滚、哪些不行，并验证AUTO_INCREMENT的差异。
+
+-- 4. 查询INFORMATION_SCHEMA.SCHEMATA，找出MySQL默认的字符集和排序规则是什么，
+--    并列出所有可用字符集（提示：SHOW CHARACTER SET）。
+
+-- 5. 创建一个临时表t_temp_test（包含id和name列），插入数据后执行SHOW TABLES
+--    和SHOW FULL TABLES WHERE Table_type = 'VIEW'，验证临时表在两种命令中的可见性差异。

@@ -398,3 +398,47 @@ SELECT
     p.cat_name AS parent_category
 FROM t_category c
 LEFT JOIN t_category p ON c.parent_id = p.cat_id;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | JOIN语法        | FROM A JOIN B ON    | 同MySQL              | 同MySQL              | 同MySQL              |
+-- | USING子句       | USING(col)          | USING(col)           | USING(col)          | USING(col)          |
+-- | NATURAL JOIN    | 支持                | 支持                 | 支持                | 支持                |
+-- | CROSS JOIN      | CROSS JOIN/逗号     | CROSS JOIN/逗号      | CROSS JOIN/逗号     | CROSS JOIN/逗号     |
+-- | FULL OUTER JOIN | 不支持（用LEFT+UNION）| FULL OUTER JOIN     | FULL OUTER JOIN     | 不支持               |
+-- | LATERAL JOIN    | 不支持（8.0+部分支持）| 支持LATERAL         | 支持LATERAL         | 3.35+支持LATERAL    |
+-- | ON vs WHERE     | ON决定连接，WHERE过滤 | 同MySQL              | 同MySQL              | 同MySQL              |
+-- | 子查询别名必须   | 必须（FROM子查询）    | 必须                 | 必须                 | 必须                 |
+
+-- MySQL FULL OUTER JOIN的替代写法：
+-- SELECT * FROM A LEFT JOIN B ON A.id = B.id
+-- UNION
+-- SELECT * FROM A RIGHT JOIN B ON A.id = B.id WHERE A.id IS NULL;
+
+-- PostgreSQL的LATERAL子查询（MySQL不支持）：
+-- SELECT p.name, o.order_count
+-- FROM products p
+-- LEFT JOIN LATERAL (SELECT COUNT(*) FROM orders WHERE product_id = p.id) o ON true;
+
+-- Oracle的(+)反向连接语法（已过时，不推荐）：
+-- SELECT e.name, d.name FROM emp e, dept d WHERE e.dept_id(+) = d.dept_id;
+-- 等价于 LEFT OUTER JOIN
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建3张表：学生表、课程表、选课表（中间表含成绩），
+--    用INNER JOIN查询选了课的学生姓名和课程名及成绩。
+
+-- 2. 用LEFT JOIN查询所有部门（包括没有员工的部门），和所有员工（包括没有部门的员工），
+--    对比LEFT JOIN、RIGHT JOIN、INNER JOIN的结果数量。
+
+-- 3. 用EXISTS和IN分别实现：查询选修了'数学'课程的学生姓名，对比两种写法的结果。
+
+-- 4. 用自连接（员工表含manager_id）查询每个员工及其上级经理的姓名。
+
+-- 5. 构造一个UNION ALL查询：分别用简单SELECT和带聚合的SELECT，
+--    观察UNION ALL不去重、直接追加结果集的行为。

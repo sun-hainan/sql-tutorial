@@ -375,3 +375,47 @@ SELECT * FROM t_stock;  -- P002的stock从500变成600
 
 -- affected_rows返回值判断：
 -- 1 = 新插入，2 = 更新（MySQL协议层定义）
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 批量插入语法      | INSERT...VALUES(),(),() | 同MySQL           | 同MySQL              | 同MySQL              |
+-- | UPSERT语法       | INSERT...ONDUPLICATE KEY UPDATE | INSERT...ON CONFLICT | MERGE INTO          | INSERT OR REPLACE |
+-- | IGNORE语法       | INSERT IGNORE INTO   | ON CONFLICT DO NOTHING | 不支持              | INSERT OR IGNORE    |
+-- | REPLACE语义      | REPLACE INTO（先删后插） | INSERT...ON CONFLICT | MERGE               | INSERT OR REPLACE   |
+-- | 子查询插入        | INSERT...SELECT      | INSERT...SELECT      | INSERT...SELECT      | INSERT...SELECT     |
+-- | 逻辑删除实现      | is_deleted标志位      | is_deleted标志位       | is_deleted标志位      | is_deleted标志位     |
+-- | DELETE LIMIT    | 支持                  | 支持                  | 不支持(rownum)       | 支持                |
+-- | UPDATE ORDER BY | 支持                  | 支持                  | 不支持               | 支持                |
+
+-- PostgreSQL UPSERT（9.5+）：
+-- INSERT INTO t_stock (product_code, stock)
+-- VALUES ('P001', 100)
+-- ON CONFLICT (product_code) DO UPDATE SET stock = t_stock.stock + EXCLUDED.stock;
+
+-- Oracle MERGE（标准UPSERT）：
+-- MERGE INTO t_target t
+-- USING t_source s
+-- ON (t.id = s.id)
+-- WHEN MATCHED THEN UPDATE SET t.value = s.value
+-- WHEN NOT MATCHED THEN INSERT (id, value) VALUES (s.id, s.value);
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 用INSERT ... VALUES (...), (...), (...) 批量插入10条学生记录，
+--    再用INSERT INTO ... SELECT插入10条，用COUNT(*)验证总条数。
+
+-- 2. 实现Upsert功能（订单库存表，product_code为主键）：
+--    第一次插入新记录，再次插入时更新库存数量。用ON DUPLICATE KEY UPDATE实现。
+
+-- 3. 对一张有AUTO_INCREMENT主键的表，分别执行DELETE全表、TRUNCATE全表，
+--    之后各插入一条新记录，对比AUTO_INCREMENT的起始值差异。
+
+-- 4. 用INSERT IGNORE插入一条与唯一键冲突的记录，
+--    再用INSERT插入冲突记录后用ON DUPLICATE KEY UPDATE处理，对比两者行为差异。
+
+-- 5. 设计一个逻辑删除方案：用户表，用is_deleted=0/1标记删除状态，
+--    实现（a）查询在职员工、（b）恢复已删除员工、（c）统计删除率。

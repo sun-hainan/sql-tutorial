@@ -360,3 +360,56 @@ BEGIN
     UPDATE t_product SET stock = stock - NEW.quantity WHERE id = NEW.product_id;
 END//
 DELIMITER ;
+
+-- ================================================================
+-- 【MySQL vs 其他数据库对比】
+-- ================================================================
+-- | 特性            | MySQL               | PostgreSQL           | Oracle              | SQLite              |
+-- |---------------|---------------------|---------------------|---------------------|--------------------|
+-- | 触发时机        | BEFORE/AFTER        | BEFORE/AFTER/INSTEAD OF | BEFORE/AFTER      | 不支持              |
+-- | 触发事件        | INSERT/UPDATE/DELETE | INSERT/UPDATE/DELETE | INSERT/UPDATE/DELETE | 不支持              |
+-- | FOR EACH ROW  | 支持                | 支持                  | 支持                 | 不支持              |
+-- | 行级触发器      | FOR EACH ROW        | FOR EACH ROW          | FOR EACH ROW         | 不支持              |
+-- | 语句级触发器    | 不支持（MySQL仅行级）| 支持                  | 支持                 | 不支持              |
+-- | 跨库触发器      | 不支持              | 支持                   | 支持                 | 不支持              |
+-- | 触发器内事务    | 与DML同一事务       | 同MySQL                | 同MySQL              | 不支持              |
+-- | 递归触发        | 可能（需避免）        | 可控制                  | 可控制               | 不支持              |
+-- | INSTEAD OF     | 不支持（仅MySQL 8.0+视图上支持） | 支持 | 支持 | 不支持 |
+
+-- PostgreSQL语句级触发器（MySQL不支持）：
+-- CREATE TRIGGER tr_test
+-- FOR EACH STATEMENT  -- MySQL会报错
+-- EXECUTE FUNCTION my_trigger_func();
+
+-- Oracle INSTEAD OF触发器（用于可更新视图）：
+-- CREATE OR REPLACE TRIGGER tr_v_emp
+-- INSTEAD OF INSERT ON v_emp
+-- FOR EACH ROW
+-- BEGIN
+--     INSERT INTO emp(id, name) VALUES(:NEW.id, :NEW.name);
+-- END;
+
+-- MySQL视图INSTEAD OF触发器（8.0.0+）：
+-- CREATE TRIGGER tr_v_emp INSTEAD OF INSERT ON v_emp
+-- FOR EACH ROW
+-- BEGIN
+--     INSERT INTO emp(id, name) VALUES(NEW.id, NEW.name);
+-- END;
+
+-- ================================================================
+-- 【练习题】
+-- ================================================================
+-- 1. 创建一张订单表和一张库存表，当插入订单时自动扣减对应商品的库存，
+--    用触发器实现这一联动逻辑。
+
+-- 2. 创建审计日志表，写一个INSERT的BEFORE触发器：
+--    在插入用户表之前，自动将用户名转换为小写并记录操作时间。
+
+-- 3. 创建UPDATE触发器，当员工工资变化时，自动向工资变更日志表插入一条记录，
+--    包含旧工资、新工资、变更时间。
+
+-- 4. 用SHOW TRIGGERS查看当前数据库的所有触发器，
+--    并从INFORMATION_SCHEMA.TRIGGERS查询触发器的触发事件（INSERT/UPDATE/DELETE）和所属表。
+
+-- 5. 删除已创建的触发器，再重建它（模拟修改触发器的过程），
+--    验证删除和重建后触发器是否正常工作。
